@@ -21,14 +21,19 @@ io.on('connection', (socket) => {
   //   createdAt: 123
   // });
 
-  socket.emit('newMessage', {
-    from: 'Server',
-    text: 'Hello User',
-    createdAt: 123123
-  });
+  // socket.emit('newMessage', {
+  //   from: 'Server',
+  //   text: 'Hello User',
+  //   createdAt: 123123
+  // });
 
-  socket.on('createMessage', (message) => {
+  socket.on('createMessage', (message) => {//socket emits to one connection, io emits to all
     console.log('createMessage', message);
+    io.emit('newMessage', {
+      from: message.from,
+      text: message.text,
+      createdAt: new Date().getTime()
+    });
   });
 
   // socket.on('createEmail', (newEmail) => {//listen
