@@ -29,9 +29,10 @@ io.on('connection', (socket) => {
   //   createdAt: 123123
   // });
 
-  socket.on('createMessage', (message) => {//socket emits to one connection, io emits to all
+  socket.on('createMessage', (message, callback) => {//socket emits to one connection, io emits to all
     console.log('createMessage', message);
     io.emit('newMessage', generateMessage(message.from, message.text));
+    callback('Hello from the server');
     // socket.broadcast.emit('newMessage', {
     //   from: message.from,
     //   text: message.text,
