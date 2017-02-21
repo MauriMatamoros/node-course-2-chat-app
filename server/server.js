@@ -4,6 +4,7 @@ const express = require('express');
 const socketIO = require('socket.io');
 
 const {generateMessage, generateLocationMessage} = require('./utils/message');
+const {isRealString} = require('./utils/validation');
 const publicPath = path.join(__dirname, '../public');
 
 const port = process.env.PORT || 3000;
@@ -15,38 +16,30 @@ app.use(express.static(publicPath));
 
 io.on('connection', (socket) => {
   console.log('New user connected');
-  socket.emit('newMessage', generateMessage('Admin','Welcome to the Chat App'));
-  socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));
-  // socket.emit('newEmail', {//emit
-  //   from: 'mauricio@example.com',
-  //   text: 'Hello World',
-  //   createdAt: 123
-  // });
 
-  // socket.emit('newMessage', {
-  //   from: 'Server',
-  //   text: 'Hello User',
-  //   createdAt: 123123
-  // });
+  socket.on('join', (params, callback) => {
+    if (!isRealString(params.name) || !isRealString(params.room)) {
+      callback('Name and room name are required.');
+    }
+
+    socket.join(params.room);
+    //socket.leave(str); to leave a room
+
+    //target specific users
+    socket.emit('newMessage', generateMessage('Admin','Welcome to the Chat App'));
+    socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} has joined`));
+    callback();
+  });
 
   socket.on('createMessage', (message, callback) => {//socket emits to one connection, io emits to all
     console.log('createMessage', message);
     io.emit('newMessage', generateMessage(message.from, message.text));
     callback();
-    // socket.broadcast.emit('newMessage', {
-    //   from: message.from,
-    //   text: message.text,
-    //   createdAt: new Date().getTime()
-    // });
   });
 
   socket.on('createLocationMessage', (coords) => {
     io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude));
   });
-
-  // socket.on('createEmail', (newEmail) => {//listen
-  //   console.log('createEmail', newEmail);
-  // });
 
   socket.on('disconnect', () => {
     console.log('User was disconnected');
